@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #taskInput {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        #newTask {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        #addTaskBtn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #6200ee;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 10px;
+            background-color: #e7e7e7;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        li.completed {
+            text-decoration: line-through;
+            color: gray;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            text-align: center;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <div id="taskInput">
+            <input type="text" id="newTask" placeholder="Enter a new task" />
+            <button id="addTaskBtn">Add Task</button>
+        </div>
+        <ul id="taskList"></ul>
+    </div>
+
+    <!-- Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Task Options</h2>
+            <button id="deleteTaskBtn">Delete</button>
+            <button id="editTaskBtn">Edit</button>
+            <button id="markCompletedBtn">Mark Completed</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskInput = document.getElementById('newTask');
+            const taskList = document.getElementById('taskList');
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            const taskModal = document.getElementById('taskModal');
+            const deleteTaskBtn = document.getElementById('deleteTaskBtn');
+            const editTaskBtn = document.getElementById('editTaskBtn');
+            const markCompletedBtn = document.getElementById('markCompletedBtn');
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            let selectedTask = null;
+
+            const renderTasks = () => {
+                taskList.innerHTML = '';
+                tasks.forEach((task, index) => {
+                    const li = document.createElement('li');
+                    li.innerText = task.text;
+                    if (task.completed) li.classList.add('completed');
+                    li.addEventListener('click', () => openTaskOptions(task, index));
+                    taskList.appendChild(li);
+                });
+            };
+
+            const addTask = () => {
+                const taskText = taskInput.value.trim();
+                if (taskText === '') return alert('Task cannot be empty!');
+                tasks.push({ text: taskText, completed: false });
+                saveTasks();
+                taskInput.value = '';
+                renderTasks();
+            };
+
+            const openTaskOptions = (task, index) => {
+                selectedTask = index;
+                taskModal.style.display = 'block';
+            };
+
+            const closeModal = () => {
+                taskModal.style.display = 'none';
+            };
+
+            const deleteTask = () => {
+                tasks.splice(selectedTask, 1);
+                saveTasks();
+                closeModal();
+                renderTasks();
+            };
+
+            const editTask = () => {
+                const newTaskText = prompt('Edit Task:', tasks[selectedTask].text);
+                if (newTaskText !== null) {
+                    tasks[selectedTask].text = newTaskText.trim();
+                    saveTasks();
+                    closeModal();
+                    renderTasks();
+                }
+            };
+
+            const markCompleted = () => {
+                tasks[selectedTask].completed = true;
+                saveTasks();
+                closeModal();
+                renderTasks();
+            };
+
+            const saveTasks = () => {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            };
+
+            addTaskBtn.addEventListener('click', addTask);
+            deleteTaskBtn.addEventListener('click', deleteTask);
+            editTaskBtn.addEventListener('click', editTask);
+            markCompletedBtn.addEventListener('click', markCompleted);
+            document.querySelector('.close').addEventListener('click', closeModal);
+
+            renderTasks();
+        });
+    </script>
+</body>
+</html>
